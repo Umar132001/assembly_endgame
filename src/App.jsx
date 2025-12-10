@@ -122,6 +122,7 @@ function App() {
   return (
     <>
       <main>
+        {isGameWon && <Confetti recycle={false} numberOfPieces={1000} />}
         <header>
           <h1>Assembly: Endgame</h1>
           <p>

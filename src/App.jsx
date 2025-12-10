@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { languages } from "./components/languages";
-import { getFarewellText } from "./components/utils";
+import { getFarewellText, getRandomWord } from "./components/utils";
 import { clsx } from "clsx";
 import "./App.css";
 
 function App() {
-  const [currentWord, setCurrentWord] = useState("react");
+  const [currentWord, setCurrentWord] = useState(() => getRandomWord());
   const [guessedLetters, setGuessedLetters] = useState([]);
 
   const alphabet = "abcdefghijklmnopqrstuvwxyz";
 
+  const numGuessesLeft = languages.length - 1;
   const wrongGuessCount = guessedLetters.filter(
     (letter) => !currentWord.includes(letter)
   ).length;

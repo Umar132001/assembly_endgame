@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { languages } from "./components/languages";
+import { getFarewellText } from "./components/utils";
 import { clsx } from "clsx";
 import "./App.css";
 
@@ -18,6 +19,9 @@ function App() {
     .every((letter) => guessedLetters.includes(letter));
   const isGameLost = wrongGuessCount >= languages.length - 1;
   const isGameOver = isGameWon || isGameLost;
+  const lastGuessedLetter = guessedLetters[guessedLetters.length - 1];
+  const isLastGuessIncorrect =
+    lastGuessedLetter && !currentWord.includes(lastGuessedLetter);
 
   function addGuessedLetter(letter) {
     setGuessedLetters((prevLetters) =>
@@ -60,6 +64,9 @@ function App() {
       <button
         className={className}
         key={letter}
+        disabled={isGameOver}
+        aria-disabled={guessedLetters.includes(letter)}
+        aria-label={`Letter ${letter}`}
         onClick={() => addGuessedLetter(letter)}
       >
         {letter.toUpperCase()}
@@ -70,11 +77,16 @@ function App() {
   const gameStatusClass = clsx("game-status", {
     won: isGameWon,
     lost: isGameLost,
+    farewell: !isGameOver && isLastGuessIncorrect,
   });
 
   function renderGameStatus() {
-    if (!isGameOver) {
-      return null;
+    if (!isGameOver && isLastGuessIncorrect) {
+      return (
+        <p className="farewell-message">
+          {getFarewellText(languages[wrongGuessCount - 1].name)}
+        </p>
+      );
     }
 
     if (isGameWon) {
@@ -84,7 +96,8 @@ function App() {
           <p>Well done! 🎉</p>
         </>
       );
-    } else {
+    }
+    if (isGameLost) {
       return (
         <>
           <h2>Game over!</h2>
@@ -92,6 +105,8 @@ function App() {
         </>
       );
     }
+
+    return null;
   }
 
   return (
@@ -105,11 +120,31 @@ function App() {
           </p>
         </header>
 
-        <section className={gameStatusClass}>{renderGameStatus()}</section>
+        <section aria-live="polite" role="status" className={gameStatusClass}>
+          {renderGameStatus()}
+        </section>
 
         <section className="language-chips">{languageElements}</section>
 
         <section className="word">{letterElements}</section>
+
+        <section className="sr-only" aria-live="polite" role="status">
+          <p>
+            {currentWord.includes(lastGuessedLetter)
+              ? `Correct! The letter ${lastGuessedLetter} is in the word.`
+              : `Sorry, the letter ${lastGuessedLetter} is not in the word.`}
+            You have {numGuessesLeft} attempts left.
+          </p>
+          <p>
+            Current word:{" "}
+            {currentWord
+              .split("")
+              .map((letter) =>
+                guessedLetters.includes(letter) ? letter + "." : "blank."
+              )
+              .join(" ")}
+          </p>
+        </section>
 
         <section className="keyboard">{keyboardElements}</section>
 
